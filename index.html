@@ -1,82 +1,154 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.70, maximum-scale=0.70, user-scalable=no">
-    <title>Vibe - OIO ONE Edition</title>
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OIO Social</title>
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #18191a;
+  color: white;
+}
 
-    <style>
-        body { margin:0; font-family:sans-serif; background:#000; color:#fff; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
-        #chat { flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px; background:radial-gradient(circle at top, #001a33, #000); }
-        .balao { background: rgba(0, 153, 255, 0.2); padding:10px 12px; border-radius:15px; max-width:80%; border: 1px solid rgba(0, 153, 255, 0.3); align-self: flex-start; }
-        .balao.minha { align-self: flex-end; background: #0066ff; border: none; }
-        .balao img { max-width:100%; border-radius:10px; margin-top:5px; display:block; }
-        .controles { display:flex; gap:10px; padding:12px; background:#111; align-items:center; }
-        input { flex:1; padding:12px; border-radius:25px; border:none; background:#222; color:#fff; outline:none; }
-        .btn-vibe { color:#0099ff; font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-    </style>
+/* topo */
+.header {
+  background: #242526;
+  padding: 10px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* caixa post */
+.post-box {
+  padding: 10px;
+  background: #242526;
+  margin: 10px;
+  border-radius: 10px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+}
+
+button {
+  margin-top: 5px;
+  padding: 8px;
+  width: 100%;
+  border: none;
+  background: #1877f2;
+  color: white;
+  border-radius: 5px;
+}
+
+/* post */
+.post {
+  background: #242526;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+  border-top: 1px solid #333;
+  padding-top: 5px;
+}
+
+.comment-box {
+  margin-top: 10px;
+}
+</style>
 </head>
+
 <body>
 
-    <div id="chat"></div>
+<div class="header">OIO SOCIAL</div>
 
-    <div class="controles">
-        <i class="fa-solid fa-camera btn-vibe" onclick="document.getElementById('fotoInput').click()"></i>
-        <input id="msgInput" placeholder="Sua vibe..." autocomplete="off">
-        <i class="fa-solid fa-star btn-vibe" onclick="enviar()"></i>
-    </div>
+<div class="post-box">
+  <input id="postInput" placeholder="No que você está pensando?">
+  <button onclick="addPost()">Postar</button>
+</div>
 
-    <input type="file" id="fotoInput" accept="image/*" style="display:none">
+<div id="feed"></div>
 
-    <script>
-        const config = {
-            apiKey: "AIzaSyAkJlFLnzPdwJUbnfJdwvQ3_YFC7A33sAQ",
-            databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/",
-            projectId: "vibe-app-bbba2"
-        };
-        firebase.initializeApp(config);
-        const db = firebase.database().ref("chat_vibe");
+<script>
+let posts = JSON.parse(localStorage.getItem("posts") || "[]");
 
-        let nick = prompt("Seu nome:") || "Michel";
+function render(){
+  const feed = document.getElementById("feed");
+  feed.innerHTML = "";
 
-        db.limitToLast(30).on("child_added", snap => {
-            const m = snap.val();
-            const div = document.createElement("div");
-            div.className = "balao " + (m.autor === nick ? "minha" : "");
-            div.innerHTML = `<b>${m.autor}</b><br>${m.url ? `<img src="${m.url}">` : m.texto}`;
-            document.getElementById("chat").appendChild(div);
-            document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
-        });
+  posts.reverse().forEach((p, i) => {
+    const el = document.createElement("div");
+    el.className = "post";
 
-        function enviar() {
-            const input = document.getElementById("msgInput");
-            if(input.value.trim()){
-                db.push({ autor: nick, texto: input.value, data: Date.now() });
-                input.value = "";
-            }
-        }
+    el.innerHTML = `
+      <strong>Michel</strong>
+      <p>${p.text}</p>
 
-        document.getElementById("fotoInput").onchange = function(e) {
-            if(this.files && this.files[0]){
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    db.push({ autor: nick, texto: "[Foto]", url: event.target.result, data: Date.now() });
-                    if(navigator.vibrate) navigator.vibrate(100);
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
-        };
+      <div class="actions">
+        <button onclick="like(${i})">❤️ ${p.likes}</button>
+        <button onclick="toggleComment(${i})">💬</button>
+      </div>
 
-        document.getElementById("msgInput").addEventListener("keypress", (e) => { if(e.key === "Enter") enviar(); });
-    </script>
+      <div class="comment-box" id="c-${i}" style="display:none">
+        <div>${p.comments.map(c => "<p>"+c+"</p>").join("")}</div>
+        <input placeholder="Comentar..." onkeypress="comment(event, ${i})">
+      </div>
+    `;
+
+    feed.appendChild(el);
+  });
+}
+
+function addPost(){
+  const input = document.getElementById("postInput");
+  if(!input.value) return;
+
+  posts.push({
+    text: input.value,
+    likes: 0,
+    comments: []
+  });
+
+  input.value = "";
+  save();
+}
+
+function like(i){
+  posts[i].likes++;
+  save();
+}
+
+function toggleComment(i){
+  const box = document.getElementById("c-"+i);
+  box.style.display = box.style.display === "none" ? "block" : "none";
+}
+
+function comment(e, i){
+  if(e.key === "Enter"){
+    posts[i].comments.push(e.target.value);
+    e.target.value = "";
+    save();
+  }
+}
+
+function save(){
+  localStorage.setItem("posts", JSON.stringify(posts));
+  render();
+}
+
+render();
+</script>
+
 </body>
 </html>
