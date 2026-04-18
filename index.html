@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
@@ -20,63 +20,18 @@
   --txt:#e9edef; --mu:#8696a0; --sent:#005c4b; --recv:#202c33;
   --ff:'Nunito', sans-serif; --ff-h:'Rajdhani', sans-serif;
 }
-
 *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-
-/* AJUSTE PARA ECRÃ CHEIO NO TELEMÓVEL */
-html, body { 
-  height: 100dvh; width: 100vw; overflow: hidden; position: fixed;
-  background: var(--bg); color: var(--txt); font-family: var(--ff);
-  display: flex; flex-direction: column;
-}
-
+html, body { height: 100dvh; width: 100vw; overflow: hidden; position: fixed; background: var(--bg); color: var(--txt); font-family: var(--ff); display: flex; flex-direction: column; }
 #bg-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.4; }
-
-#topo {
-  background: rgba(17, 27, 33, 0.9); backdrop-filter: blur(15px);
-  padding: calc(env(safe-area-inset-top,0) + 12px) 16px 12px;
-  display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--bdr); flex-shrink: 0;
-}
+#topo { background: rgba(17, 27, 33, 0.9); backdrop-filter: blur(15px); padding: calc(env(safe-area-inset-top,0) + 12px) 16px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--bdr); flex-shrink: 0; }
 .logo { font-family: var(--ff-h); font-weight: 700; font-size: 1.3rem; letter-spacing: 2px; color: #fff; }
 .logo span { color: var(--g); border: 1px solid var(--g); padding: 0 5px; border-radius: 4px; margin-left: 6px; font-size: 0.75rem; vertical-align: middle; }
-
-.topo-actions { display: flex; gap: 20px; }
-.t-btn { font-size: 1.4rem; color: var(--mu); cursor: pointer; }
-.t-btn.active { color: var(--g); }
-
-/* ÁREA DE CONTEÚDO QUE OCUPA O RESTO DO ECRÃ */
-#main-content {
-  flex: 1; display: flex; flex-direction: column; overflow: hidden;
-}
-
-#msgs {
-  flex: 1; overflow-y: auto; padding: 15px;
-  display: flex; flex-direction: column; gap: 12px;
-  background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-  background-size: 400px;
-}
-
-#controls {
-  background: var(--s); padding: 12px 15px calc(env(safe-area-inset-bottom, 0px) + 12px);
-  display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--bdr);
-}
-#msgInput {
-  flex: 1; background: var(--card); border: none; border-radius: 25px;
-  padding: 12px 20px; color: #fff; font-size: 1rem; outline: none;
-}
-.s-btn { 
-  background: var(--g2); color: #fff; border: none; 
-  width: 48px; height: 48px; border-radius: 50%; font-size: 1.2rem;
-  display: flex; align-items: center; justify-content: center;
-}
-
-#tst {
-  position: fixed; top: 110px; left: 50%; transform: translateX(-50%);
-  background: var(--g2); color: #fff; padding: 10px 22px;
-  border-radius: 20px; font-weight: 600; font-size: 0.85rem;
-  z-index: 10000; display: none;
-}
+#main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: 400px; }
+#controls { background: var(--s); padding: 12px 15px calc(env(safe-area-inset-bottom, 0px) + 12px); display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--bdr); }
+#msgInput { flex: 1; background: var(--card); border: none; border-radius: 25px; padding: 12px 20px; color: #fff; font-size: 1rem; outline: none; }
+.s-btn { background: var(--g2); color: #fff; border: none; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+#tst { position: fixed; top: 110px; left: 50%; transform: translateX(-50%); background: var(--g2); color: #fff; padding: 10px 22px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; z-index: 10000; display: none; }
 </style>
 </head>
 <body>
@@ -88,17 +43,14 @@ html, body {
   <div class="logo">OIO ONE<span>FAMÍLIA</span></div>
   <div class="topo-actions">
     <i class="fa-solid fa-circle-plus t-btn" onclick="toast('Stories em breve')"></i>
-    <i class="fa-solid fa-video t-btn" onclick="toast('Videochamada em breve')"></i>
-    <i class="fa-solid fa-comment-dots t-btn active"></i>
+    <i class="fa-solid fa-comment-dots t-btn active" style="color:var(--g)"></i>
   </div>
 </header>
 
 <main id="main-content">
   <div id="msgs"></div>
-  
   <div id="controls">
-    <i class="fa-solid fa-microphone t-btn" onclick="toast('Áudio em breve')"></i>
-    <input type="text" id="msgInput" placeholder="Conversar com a família...">
+    <input type="text" id="msgInput" placeholder="Mensagem para a família...">
     <button class="s-btn" onclick="enviar()"><i class="fa-solid fa-paper-plane"></i></button>
   </div>
 </main>
@@ -107,15 +59,15 @@ html, body {
 const SB_URL = 'https://uqdwtzlkqaosnweyoyit.supabase.co';
 const SB_KEY = 'sb_publishable_uafBQD1aJ3w8_eq4meOsNQ_wzk8TwhA';
 const sb = supabase.createClient(SB_URL, SB_KEY);
+const somNotificacao = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
-let meuNome = localStorage.getItem('oio_user');
-if(!meuNome) {
-  meuNome = prompt("Qual é o seu nome?") || "Membro";
+let meuNome = localStorage.getItem('oio_user') || 'Membro';
+if(meuNome === 'Membro') {
+  meuNome = prompt("Como te chamas?") || 'Membro';
   localStorage.setItem('oio_user', meuNome);
 }
 
 const KeyHelper = libsignal.KeyHelper;
-
 async function initCrypto() {
   if (!localStorage.getItem('oio_idkey')) {
     const identity = await KeyHelper.generateIdentityKeyPair();
@@ -123,35 +75,55 @@ async function initCrypto() {
   }
 }
 
+async function cifrar(texto) {
+  try {
+    const identity = JSON.parse(localStorage.getItem('oio_idkey'));
+    const enc = new TextEncoder().encode(texto);
+    const key = await crypto.subtle.importKey('jwk', identity.pubKey, {name:'AES-GCM'}, false, ['encrypt']);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const cifrado = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc);
+    return { msg: btoa(String.fromCharCode(...new Uint8Array(cifrado))), iv: btoa(String.fromCharCode(...iv)) };
+  } catch(e) { return { msg: texto, iv: null }; }
+}
+
+async function decifrar(cifrado, ivBase64) {
+  try {
+    if(!ivBase64) return cifrado;
+    const identity = JSON.parse(localStorage.getItem('oio_idkey'));
+    const key = await crypto.subtle.importKey('jwk', identity.pubKey, {name:'AES-GCM'}, false, ['decrypt']);
+    const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+    const data = Uint8Array.from(atob(cifrado), c => c.charCodeAt(0));
+    const dec = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
+    return new TextDecoder().decode(dec);
+  } catch(e) { return "🔒 Mensagem Cifrada"; }
+}
+
 async function enviar() {
   const input = document.getElementById('msgInput');
   const texto = input.value.trim();
   if (!texto) return;
-
-  // Enviar para o Supabase
-  const { error } = await sb.from('messages').insert([
-    { author: meuNome, content: texto, chat_room: 'Geral' }
-  ]);
-
-  if (!error) { input.value = ''; }
+  const { msg, iv } = await cifrar(texto);
+  await sb.from('messages').insert([{ author: meuNome, content: msg, iv_data: iv, chat_room: 'Geral' }]);
+  input.value = '';
 }
 
-// Escuta em tempo real
 sb.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-  renderMsg(payload.new);
+  renderMsg(payload.new, true);
 }).subscribe();
 
-function renderMsg(m) {
+async function renderMsg(m, isNew = false) {
   const wrap = document.getElementById('msgs');
+  const textoFinal = await decifrar(m.content, m.iv_data);
   const isMe = m.author === meuNome;
+  
+  if (isNew && !isMe) {
+    somNotificacao.play().catch(() => {});
+    if (navigator.vibrate) navigator.vibrate(100);
+  }
+
   const div = document.createElement('div');
-  div.style.cssText = `
-    align-self: ${isMe ? 'flex-end' : 'flex-start'};
-    background: ${isMe ? 'var(--sent)' : 'var(--recv)'};
-    padding: 10px 14px; border-radius: 15px; max-width: 85%;
-    margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  `;
-  div.innerHTML = `<div style="font-size:0.7rem; color:var(--g); font-weight:800;">${m.author}</div><div style="font-size:1rem;">${m.content}</div>`;
+  div.style.cssText = `align-self:${isMe?'flex-end':'flex-start'}; background:${isMe?'var(--sent)':'var(--recv)'}; padding:10px 14px; border-radius:15px; max-width:85%; margin-bottom:8px;`;
+  div.innerHTML = `<div style="font-size:0.7rem; color:var(--g); font-weight:800;">${m.author}</div><div>${textoFinal}</div>`;
   wrap.appendChild(div);
   wrap.scrollTop = wrap.scrollHeight;
 }
@@ -159,37 +131,18 @@ function renderMsg(m) {
 function toast(m) {
   const t = document.getElementById('tst');
   t.textContent = m; t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 2500);
+  setTimeout(() => t.style.display = 'none', 2000);
 }
 
-function initVisuals() {
-  const c = document.getElementById('bg-canvas');
-  const ctx = c.getContext('2d');
-  let w, h, pts = [];
-  const resize = () => { w = c.width = window.innerWidth; h = c.height = window.innerHeight; };
-  window.addEventListener('resize', resize);
-  resize();
-  for(let i=0; i<6; i++) pts.push({x:Math.random()*w, y:Math.random()*h, r:Math.random()*50+30, vx:Math.random()*0.4-0.2, vy:Math.random()*0.4-0.2});
-  function anim() {
-    ctx.clearRect(0,0,w,h);
-    pts.forEach(p => {
-      p.x+=p.vx; p.y+=p.vy;
-      if(p.x<0||p.x>w) p.vx*=-1; if(p.y<0||p.y>h) p.vy*=-1;
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-      ctx.fillStyle = 'rgba(37, 211, 102, 0.05)'; ctx.fill();
-    });
-    requestAnimationFrame(anim);
-  }
-  anim();
-}
-
-window.onload = () => {
-  initVisuals();
-  initCrypto();
-  // Carregar mensagens antigas
-  sb.from('messages').select('*').order('created_at', { ascending: true }).limit(20).then(({data}) => {
-    if(data) data.forEach(renderMsg);
-  });
+window.onload = async () => {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+  window.addEventListener('resize', resize); resize();
+  await initCrypto();
+  const { data } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(20);
+  if(data) data.forEach(m => renderMsg(m, false));
+  toast("OIO ONE Conectado");
 };
 </script>
 </body>
