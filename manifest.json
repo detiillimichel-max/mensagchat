@@ -1,13 +1,13 @@
 {
   "name": "OIO ONE Família",
   "short_name": "OIO ONE",
-  "start_url": "/",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0b141a",
   "theme_color": "#0b141a",
   "icons": [
     {
-      "src": "/assets/img/logo.png",
+      "src": "logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }
