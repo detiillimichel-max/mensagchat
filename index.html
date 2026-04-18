@@ -6,54 +6,117 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0b141a">
-<title>OIO ONE · Família</title>
-<link rel="manifest" href="/manifest.json">
+<title>OIO ONE PRO</title>
+
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/libsignal-protocol@0.0.11/dist/libsignal-protocol.js"></script>
+
+<style>
+/* ═══════════════ DESIGN PREMIUM (GLASSMORPHISM) ═══════════════ */
+:root {
+  --g:#25d366; --g2:#128c7e; --bg:#0b141a; --s:#111b21;
+  --c:#202c33; --card:#2a3942; --bdr:rgba(255,255,255,.07);
+  --txt:#e9edef; --mu:#8696a0; --sent:#005c4b; --recv:#202c33;
+  --ff:'Nunito', sans-serif; --ff-h:'Rajdhani', sans-serif;
+}
+
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body { 
+  height:100%; width:100%; overflow:hidden; position:fixed;
+  background:var(--bg); color:var(--txt); font-family:var(--ff);
+}
+
+/* BACKGROUND ANIMADO */
+#bg-canvas { position:fixed; inset:0; z-index:-1; opacity:0.4; }
+
+/* HEADER */
+#topo {
+  background:rgba(17, 27, 33, 0.85); backdrop-filter:blur(15px);
+  padding:calc(env(safe-area-inset-top,0) + 10px) 16px 10px;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--bdr); z-index:100;
+}
+.logo { font-family:var(--ff-h); font-weight:700; font-size:1.2rem; letter-spacing:2px; color:#fff; }
+.logo span { color:var(--g); border:1px solid var(--g); padding:0 4px; border-radius:4px; margin-left:5px; font-size:0.7rem; }
+
+.topo-actions { display:flex; gap:18px; }
+.t-btn { font-size:1.3rem; color:var(--mu); cursor:pointer; transition:0.2s; }
+.t-btn.active { color:var(--g); }
+
+/* STORIES BAR */
+#mbar {
+  height:95px; display:flex; align-items:center; gap:12px;
+  padding:0 15px; overflow-x:auto; background:var(--s);
+  border-bottom:1px solid var(--bdr); scrollbar-width:none;
+}
+#mbar::-webkit-scrollbar { display:none; }
+
+/* MESSAGES AREA */
+#msgs {
+  flex:1; overflow-y:auto; padding:15px;
+  display:flex; flex-direction:column; gap:10px;
+  background:url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+  background-blend-mode: overlay;
+}
+
+/* INPUT AREA */
+#controls {
+  background:var(--s); padding:10px 15px calc(env(safe-area-inset-bottom,0) + 10px);
+  display:flex; align-items:center; gap:12px; border-top:1px solid var(--bdr);
+}
+#msgInput {
+  flex:1; background:var(--card); border:none; border-radius:22px;
+  padding:12px 18px; color:#fff; font-family:var(--ff); outline:none;
+}
+.s-btn { 
+  background:var(--g2); color:#fff; border:none; 
+  width:45px; height:45px; border-radius:50%; font-size:1.1rem;
+}
+
+/* TOAST */
+#tst {
+  position:fixed; top:100px; left:50%; transform:translateX(-50%);
+  background:var(--g2); color:#fff; padding:10px 20px;
+  border-radius:20px; font-weight:600; font-size:0.85rem;
+  z-index:10000; display:none; animation:pop 0.3s forwards;
+}
+@keyframes pop { from{opacity:0; transform:translateX(-50%) translateY(-20px);} to{opacity:1; transform:translateX(-50%) translateY(0);} }
+</style>
 </head>
 <body>
-<div id="progresso"></div>
+
 <canvas id="bg-canvas"></canvas>
-<div id="toasts"></div>
+<div id="tst"></div>
 
 <header id="topo">
-  <div class="logo">OIO ONE<span class="logo-tag">FAMÍLIA</span></div>
+  <div class="logo">OIO ONE<span>FAMÍLIA</span></div>
   <div class="topo-actions">
-    <i class="fa-solid fa-circle-plus topo-btn" onclick="postarStory()"></i>
-    <i class="fa-solid fa-video topo-btn" id="btnFeed" onclick="abrirTela('feed')"></i>
-    <i class="fa-solid fa-comment-dots topo-btn ativo" id="btnChat" onclick="abrirTela('chat')"></i>
+    <i class="fa-solid fa-circle-plus t-btn" onclick="toast('Função Stories em breve')"></i>
+    <i class="fa-solid fa-video t-btn" id="btnFeed" onclick="toggleTela('feed')"></i>
+    <i class="fa-solid fa-comment-dots t-btn active" id="btnChat" onclick="toggleTela('chat')"></i>
   </div>
 </header>
 
-<div id="familia-bar"></div>
+<div id="mbar"></div>
 
-<section class="tela ativa" id="tela-chat">
-  <div id="mensagens"></div>
-</section>
-
-<section class="tela" id="tela-feed">
-  <div class="feed-header">
-    <div class="feed-title">DAILY</div>
-    <button class="btn-postar" onclick="document.getElementById('videoInput').click()">
-      <i class="fa-solid fa-plus"></i> POSTAR
-    </button>
+<main id="main-content" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+  <div id="msgs"></div>
+  
+  <div id="controls">
+    <i class="fa-solid fa-camera t-btn"></i>
+    <i class="fa-solid fa-microphone t-btn"></i>
+    <input type="text" id="msgInput" placeholder="Conversar com a família...">
+    <button class="s-btn" onclick="enviar()"><i class="fa-solid fa-paper-plane"></i></button>
   </div>
-  <div id="grid-feed"></div>
-</section>
+</main>
 
-<div id="controles">
-  <div class="ctrl-btn" onclick="abrirCamera()"><i class="fa-solid fa-camera"></i></div>
-  <div class="ctrl-btn" id="btnMic" onclick="toggleGravacao()"><i class="fa-solid fa-microphone"></i></div>
-  <input type="text" id="msgInput" placeholder="Mensagem para a família..." autocomplete="off">
-  <button class="ctrl-send" onclick="enviar()"><i class="fa-solid fa-paper-plane"></i></button>
-</div>
-
-<script src="/assets/js/supabase-config.js"></script>
-<script src="/assets/js/crypto.js"></script>
-<script src="/assets/js/ui.js"></script>
-<script src="/assets/js/app.js"></script>
+<script>
+// O Motor JavaScript (Supabase + Crypto + UI) segue no próximo balão...
+</script>
 </body>
 </html>
