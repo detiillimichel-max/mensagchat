@@ -1,0 +1,19 @@
+:root {
+  --g:#25d366; --g2:#128c7e; --bg:#0b141a; --s:#111b21;
+  --c:#202c33; --card:#2a3942; --bdr:rgba(255,255,255,.07);
+  --txt:#e9edef; --mu:#8696a0; --sent:#005c4b; --recv:#202c33;
+  --red:#e53e3e; --ff:'Nunito',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;width:100%;overflow:hidden;position:fixed;background:var(--bg);color:var(--txt);font-family:var(--ff);}
+
+#topo { background:var(--s); border-bottom:1px solid var(--bdr); padding:calc(env(safe-area-inset-top,0)+10px) 16px 10px; display:flex; align-items:center; justify-content:space-between; }
+.logo { font-weight:800; color:var(--g); letter-spacing:2px; font-size:1.1rem; }
+.logo-tag { color:#fff; font-size:0.7rem; margin-left:5px; border:1px solid var(--bdr); padding:2px 5px; border-radius:4px; }
+
+.tela { display:none; flex:1; flex-direction:column; overflow:hidden; }
+.tela.ativa { display:flex; }
+
+#controles { background:var(--s); border-top:1px solid var(--bdr); padding:10px 10px calc(10px + env(safe-area-inset-bottom,0)); display:flex; align-items:center; gap:10px; }
+#msgInput { flex:1; background:var(--card); border:none; border-radius:20px; padding:10px 15px; color:#fff; outline:none; }
+.ctrl-send { background:var(--g2); border:none; color:#fff; width:40px; height:40px; border-radius:50%; }
