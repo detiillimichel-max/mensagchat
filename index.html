@@ -6,345 +6,54 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0b141a">
-<title>VIBE APP PRO</title>
+<title>OIO ONE · Família</title>
+<link rel="manifest" href="/manifest.json">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script crossorigin src="https://unpkg.com/@daily-co/daily-js"></script>
-<script src="https://unpkg.com/wavesurfer.js@7"></script>
-<script src="services/database.js"></script>
-<style>
-/* ═══════════════ RESET & BASE ═══════════════ */
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-:root{
-  --g:#25d366;--g2:#128c7e;--bg:#0b141a;--s:#111b21;
-  --c:#202c33;--card:#2a3942;--bdr:rgba(255,255,255,.07);
-  --txt:#e9edef;--mu:#8696a0;--sent:#005c4b;--recv:#202c33;
-  --red:#e53e3e;--blue:#34b7f1;--ff:'Nunito',sans-serif;
-}
-html,body{height:100%;width:100%;overflow:hidden;position:fixed;
-  background:var(--bg);color:var(--txt);font-family:var(--ff);}
-
-/* ═══════════════ LOGIN ═══════════════ */
-#LOGIN{
-  position:fixed;inset:0;z-index:9999;
-  background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;
-  justify-content:flex-start;overflow-y:auto;
-  padding:30px 18px 40px;gap:16px;
-}
-.vibe-logo{
-  font-size:2rem;font-weight:800;letter-spacing:3px;
-  color:var(--g);margin-top:10px;
-}
-.vibe-logo span{color:#fff;}
-.l-sub{font-size:.82rem;color:var(--mu);}
-
-.l-card{
-  background:var(--s);border:1px solid var(--bdr);
-  border-radius:18px;padding:18px;
-  width:100%;max-width:360px;
-  display:flex;flex-direction:column;gap:13px;
-}
-.l-lbl{font-size:.68rem;font-weight:700;letter-spacing:.7px;
-  text-transform:uppercase;color:var(--mu);}
-
-.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;
-  max-height:200px;overflow-y:auto;scrollbar-width:none;}
-.mgrid::-webkit-scrollbar{display:none;}
-.mbtn{
-  display:flex;align-items:center;gap:7px;padding:9px 11px;
-  background:var(--card);border:2px solid transparent;
-  border-radius:11px;cursor:pointer;font-family:var(--ff);
-  color:var(--txt);font-size:.82rem;font-weight:600;transition:.15s;
-}
-.mbtn.sel{border-color:var(--g);background:rgba(37,211,102,.08);}
-.mbtn:active{transform:scale(.97);}
-
-.pdots{display:flex;gap:14px;justify-content:center;}
-.dot{width:13px;height:13px;border-radius:50%;
-  border:2px solid #4a5568;transition:.2s;}
-.dot.on{background:var(--g);border-color:var(--g);transform:scale(1.1);}
-
-.npad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
-.nk{
-  background:var(--card);border:1px solid var(--bdr);
-  border-radius:13px;padding:14px 10px;font-size:1.2rem;
-  font-weight:600;color:var(--txt);cursor:pointer;
-  font-family:var(--ff);transition:.1s;text-align:center;
-}
-.nk:active{background:rgba(37,211,102,.2);transform:scale(.95);}
-.nk.del{font-size:.9rem;color:var(--mu);}
-.nk.go{background:var(--g2);color:#fff;font-weight:700;}
-.nk.go:disabled{opacity:.3;}
-
-.l-err{color:var(--red);font-size:.8rem;text-align:center;
-  display:none;animation:shake .3s;}
-@keyframes shake{0%,100%{transform:translateX(0)}
-  25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-
-/* ═══════════════ APP SHELL ═══════════════ */
-#APP{
-  display:none;flex-direction:column;
-  height:100dvh;position:fixed;inset:0;
-}
-
-/* TOPBAR */
-#topbar{
-  background:var(--s);border-bottom:1px solid var(--bdr);
-  padding-top:env(safe-area-inset-top,0);
-  flex-shrink:0;display:flex;align-items:center;
-  padding-bottom:0;
-}
-.topbar-inner{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 16px;width:100%;
-}
-.t-logo{display:flex;align-items:center;gap:10px;}
-.t-av{
-  width:36px;height:36px;border-radius:50%;
-  border:2px solid var(--g);display:flex;
-  align-items:center;justify-content:center;
-  font-size:1.2rem;background:var(--card);cursor:pointer;
-  flex-shrink:0;
-}
-.t-name{font-size:1rem;font-weight:800;color:var(--g);letter-spacing:2px;}
-.t-name span{color:#fff;}
-.t-icons{display:flex;gap:15px;align-items:center;padding-right:5px;}
-.t-btn{
-  background:none;border:none;cursor:pointer;display:flex;
-  align-items:center;justify-content:center;font-size:1.3rem;
-  color:var(--mu);transition:.15s;
-}
-.t-btn:active{transform:scale(.85);}
-.t-online{
-  background:var(--g);color:#000;font-size:.55rem;
-  font-weight:800;border-radius:10px;padding:1px 5px;
-}
-
-/* BOTTOM NAV */
-#bnav{
-  background:var(--s);border-top:1px solid var(--bdr);
-  display:flex;padding-bottom:env(safe-area-inset-bottom,0);
-  flex-shrink:0;
-}
-.bn{
-  flex:1;display:flex;flex-direction:column;align-items:center;
-  gap:3px;padding:10px 4px 6px;cursor:pointer;
-  font-size:.65rem;color:var(--mu);font-weight:600;
-  transition:.15s;border:none;background:none;
-  font-family:var(--ff);
-}
-.bn.active{color:var(--g);}
-.bn:active{transform:scale(.92);}
-.bn-icon{font-size:1.3rem;line-height:1;}
-.bn-dot{
-  width:6px;height:6px;background:var(--g);
-  border-radius:50%;position:absolute;top:6px;right:12px;
-  display:none;
-}
-.bn.has-notif .bn-dot{display:block;}
-
-/* SCREENS */
-.screen{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
-.screen.on{display:flex;}
-
-/* ═══════════════ MEMBER BAR ═══════════════ */
-#mbar{
-  background:var(--s);border-bottom:1px solid var(--bdr);
-  height:76px;display:flex;align-items:center;
-  gap:10px;padding:0 14px;overflow-x:auto;
-  flex-shrink:0;scrollbar-width:none;
-}
-#mbar::-webkit-scrollbar{display:none;}
-.mc{
-  display:flex;flex-direction:column;align-items:center;
-  gap:3px;cursor:pointer;flex-shrink:0;min-width:50px;
-}
-.mc-av{
-  width:46px;height:46px;border-radius:50%;
-  background:var(--card);display:flex;align-items:center;
-  justify-content:center;font-size:1.2rem;
-  border:2.5px solid transparent;transition:.2s;
-  position:relative;overflow:visible;
-}
-.mc.sel .mc-av{border-color:var(--g);box-shadow:0 0 0 2px rgba(37,211,102,.18);}
-.mc-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.mc-nome{font-size:.58rem;color:var(--mu);max-width:50px;
-  text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.mc.sel .mc-nome{color:var(--g);}
-.onring{
-  position:absolute;bottom:1px;right:1px;
-  width:11px;height:11px;background:var(--g);
-  border-radius:50%;border:2px solid var(--s);
-}
-
-/* ═══════════════ MESSAGES & STATUS ═══════════════ */
-#msgs{
-  flex:1;overflow-y:auto;padding:10px 10px 4px;
-  display:flex;flex-direction:column;gap:2px;
-  scrollbar-width:none;
-  background:var(--bg);
-}
-#msgs::-webkit-scrollbar{display:none;}
-
-.dsep{
-  text-align:center;margin:6px auto;
-  background:rgba(11,20,26,.85);color:var(--mu);
-  font-size:.67rem;border-radius:10px;
-  padding:4px 14px;width:fit-content;
-}
-
-.mw{display:flex;flex-direction:column;max-width:84vw;
-  animation:bIn .18s cubic-bezier(.34,1.4,.64,1);}
-@keyframes bIn{from{opacity:0;transform:scale(.92) translateY(5px)}to{opacity:1;transform:none}}
-.mw.me{align-self:flex-end;align-items:flex-end;}
-.mw.them{align-self:flex-start;align-items:flex-start;}
-.mw-autor{font-size:.68rem;font-weight:700;margin-bottom:2px;padding:0 3px;}
-
-.bub{
-  border-radius:10px;font-size:.9rem;line-height:1.45;
-  position:relative;word-break:break-word;
-  box-shadow:0 1px 2px rgba(0,0,0,.25);
-}
-.me .bub{background:var(--sent);border-top-right-radius:2px;}
-.them .bub{background:var(--recv);border-top-left-radius:2px;}
-
-.bub-txt{padding:8px 11px;}
-.bmeta{display:flex;align-items:center;justify-content:flex-end;
-  gap:3px;margin-top:2px;}
-.btime{font-size:.58rem;color:rgba(255,255,255,.38);}
-
-/* TICKS COMERCIAIS */
-.tick{font-size:.8rem;color:var(--mu);}
-.tick.read{color:var(--blue);}
-
-/* ═══════════════ CALL SCREEN ═══════════════ */
-#CALL-UI{
-  position:fixed;inset:0;background:#000;z-index:10000;
-  display:none;flex-direction:column;
-}
-#call-frame{flex:1;width:100%;border:none;}
-.call-controls{
-  background:#111;padding:20px;display:flex;
-  justify-content:center;gap:30px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0));
-}
-.c-btn{
-  width:56px;height:56px;border-radius:50%;border:none;
-  font-size:1.5rem;color:#fff;cursor:pointer;display:flex;
-  align-items:center;justify-content:center;
-}
-.c-end{background:var(--red);}
-
-/* (O Resto do CSS do Marketplace e Modais continua exatamente igual ao teu original) */
-#sc-market{overflow-y:auto;}
-.mkt-top{padding:14px 14px 8px;display:flex;align-items:center;justify-content:space-between;}
-.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 80px;}
-.pcard{background:var(--s);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;}
-</style>
+<script src="https://unpkg.com/libsignal-protocol@0.0.11/dist/libsignal-protocol.js"></script>
 </head>
 <body>
+<div id="progresso"></div>
+<canvas id="bg-canvas"></canvas>
+<div id="toasts"></div>
 
-<div id="LOGIN">
-  <div class="vibe-logo">VIBE<span> APP</span></div>
-  <div class="l-sub">Chat & Marketplace da família</div>
-  <div class="l-card">
-    <div class="l-lbl">Quem é você?</div>
-    <div class="mgrid" id="mgrid"></div>
-    <div class="l-lbl">PIN secreto (4 dígitos)</div>
-    <div class="pdots" id="pdots">
-      <div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div>
-    </div>
-    <div class="npad" id="npad"></div>
-    <div class="l-err" id="lerr">PIN incorreto.</div>
+<header id="topo">
+  <div class="logo">OIO ONE<span class="logo-tag">FAMÍLIA</span></div>
+  <div class="topo-actions">
+    <i class="fa-solid fa-circle-plus topo-btn" onclick="postarStory()"></i>
+    <i class="fa-solid fa-video topo-btn" id="btnFeed" onclick="abrirTela('feed')"></i>
+    <i class="fa-solid fa-comment-dots topo-btn ativo" id="btnChat" onclick="abrirTela('chat')"></i>
   </div>
+</header>
+
+<div id="familia-bar"></div>
+
+<section class="tela ativa" id="tela-chat">
+  <div id="mensagens"></div>
+</section>
+
+<section class="tela" id="tela-feed">
+  <div class="feed-header">
+    <div class="feed-title">DAILY</div>
+    <button class="btn-postar" onclick="document.getElementById('videoInput').click()">
+      <i class="fa-solid fa-plus"></i> POSTAR
+    </button>
+  </div>
+  <div id="grid-feed"></div>
+</section>
+
+<div id="controles">
+  <div class="ctrl-btn" onclick="abrirCamera()"><i class="fa-solid fa-camera"></i></div>
+  <div class="ctrl-btn" id="btnMic" onclick="toggleGravacao()"><i class="fa-solid fa-microphone"></i></div>
+  <input type="text" id="msgInput" placeholder="Mensagem para a família..." autocomplete="off">
+  <button class="ctrl-send" onclick="enviar()"><i class="fa-solid fa-paper-plane"></i></button>
 </div>
 
-<div id="APP">
-  <div id="topbar">
-    <div class="topbar-inner">
-      <div class="t-logo">
-        <div class="t-av" id="tav" onclick="showScreen('chat')">?</div>
-        <div class="t-name">VIBE<span> APP</span></div>
-      </div>
-      <div class="t-icons">
-        <button class="t-btn" onclick="startCall(false)">📞</button>
-        <button class="t-btn" onclick="startCall(true)">📹</button>
-        <button class="t-btn" onclick="logout()">⎋</button>
-      </div>
-    </div>
-  </div>
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*,video/*';
-  input.onchange = e => {
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      dbStories.push({
-        autor: meuNome,
-        foto: minhaFoto,
-        midia: ev.target.result,
-        tipo: file.type.startsWith('video')? 'video' : 'img',
-        ts: Date.now(),
-        expira: Date.now() + 86400000
-      });
-      toast("Story no ar! Some em 24h 📸");
-    };
-    reader.readAsDataURL(file);
-  };
-  input.click();
-}
-
-function abrirStory(nome) {
-  dbStories.orderByChild('autor').equalTo(nome).limitToLast(1).once('value', snap => {
-    snap.forEach(c => {
-      const s = c.val();
-      if(s.expira < Date.now()) return;
-      const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:1300;display:flex;flex-direction:column;align-items:center;justify-content:center';
-      const header = document.createElement('div');
-      header.style.cssText = 'position:absolute;top:20px;left:20px;right:20px;display:flex;align-items:center;gap:10px;color:#fff;font-family:var(--ff-head)';
-      header.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:var(--glass);display:flex;align-items:center;justify-content:center">${s.autor[0]}</div><span>${s.autor}</span><div style="flex:1"></div><i class="fa-solid fa-xmark" style="font-size:1.5rem" onclick="this.parentElement.parentElement.remove()"></i>`;
-      const midia = s.tipo === 'video'?
-        `<video src="${s.midia}" autoplay playsinline style="max-width:100%;max-height:80vh"></video>` :
-        `<img src="${s.midia}" style="max-width:100%;max-height:80vh;object-fit:contain">`;
-      overlay.innerHTML = midia;
-      overlay.appendChild(header);
-      document.body.appendChild(overlay);
-      setTimeout(()=>overlay.remove(), 5000);
-    });
-  });
-}
-
-setInterval(() => {
-  dbStories.once('value', snap => {
-    snap.forEach(child => {
-      if(child.val().expira < Date.now()) child.ref.remove();
-    });
-  });
-}, 300000);
-
-async function chamarIA(pergunta) {
-  const prompt = `Você é OIO IA, assistente carinhoso da família. Responda em 1-2 frases, PT-BR, tom leve: ${pergunta}`;
-  try {
-    toast("OIO IA digitando...");
-    const resp = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({inputs: prompt, parameters: {max_new_tokens: 60}})
-    });
-    const data = await resp.json();
-    let resposta = data[0]?.generated_text?.replace(prompt, '').trim() || "Tô sem ideia agora 😅";
-    dbMsg.push({ nome: "OIO IA", texto: resposta, ts: Date.now() });
-  } catch(e) {
-    dbMsg.push({ nome: "OIO IA", texto: "Tô offline, família. Tenta depois 💙", ts: Date.now() });
-  }
-}
-
-document.addEventListener("touchstart", ()=>getAC(), {once:true});
-document.addEventListener("click", ()=>getAC(), {once:true});
-document.getElementById("msgInput").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); enviar(); } });
-</script>
+<script src="/assets/js/supabase-config.js"></script>
+<script src="/assets/js/crypto.js"></script>
+<script src="/assets/js/ui.js"></script>
+<script src="/assets/js/app.js"></script>
 </body>
 </html>
