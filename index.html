@@ -9,6 +9,7 @@
 <title>VIBE APP</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="services/database.js"></script>
 <style>
 /* ═══════════════ RESET & BASE ═══════════════ */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -482,8 +483,14 @@ html,body{height:100%;width:100%;overflow:hidden;position:fixed;
 .utx{color:#fff;font-size:.9rem;font-weight:700;}
 
 /* TOAST */
-  
-<!-- ═══ LOGIN ═══ -->
+#tst{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--g2);color:#fff;padding:10px 18px;border-radius:20px;
+  font-size:.85rem;font-weight:700;opacity:0;pointer-events:none;transition:.3s;z-index:1000;}
+#tst.on{transform:translateX(-50%) translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+
 <div id="LOGIN">
   <div class="vibe-logo">VIBE<span> APP</span></div>
   <div class="l-sub">Chat & Marketplace da família</div>
@@ -500,14 +507,13 @@ html,body{height:100%;width:100%;overflow:hidden;position:fixed;
       <div class="dot" id="d3"></div>
     </div>
     <div class="npad" id="npad"></div>
+    
     <div class="l-err" id="lerr">PIN incorreto. Tente novamente.</div>
   </div>
 </div>
 
-<!-- ═══ APP ═══ -->
 <div id="APP">
 
-  <!-- TOPBAR -->
   <div id="topbar">
     <div class="topbar-inner">
       <div class="t-logo">
@@ -521,20 +527,15 @@ html,body{height:100%;width:100%;overflow:hidden;position:fixed;
     </div>
   </div>
 
-  <!-- SCREENS -->
-  <!-- CHAT SCREEN -->
   <div class="screen on" id="sc-chat">
-    <!-- Member bar -->
     <div id="mbar"></div>
 
-    <!-- Messages -->
     <div id="msgs">
       <div class="typing on" id="tpi" style="display:none">
         <div class="td"></div><div class="td"></div><div class="td"></div>
       </div>
     </div>
 
-    <!-- Input area -->
     <div class="input-area">
       <div id="recbar">
         <div class="rdot"></div>
@@ -583,7 +584,6 @@ html,body{height:100%;width:100%;overflow:hidden;position:fixed;
     </div>
   </div>
   
-  <!-- MARKET SCREEN -->
   <div class="screen" id="sc-market">
     <div class="mkt-top">
       <div class="mkt-title">🛍 Marketplace</div>
@@ -602,7 +602,6 @@ html,body{height:100%;width:100%;overflow:hidden;position:fixed;
     <div class="prod-grid" id="prod-grid"></div>
   </div>
 
-  <!-- BOTTOM NAV -->
   <div id="bnav">
     <button class="bn active" id="bn-chat" onclick="showScreen('chat')">
       <div class="bn-icon">💬</div>
@@ -616,11 +615,9 @@ html,body{height:100%;width:100%;overflow:hidden;position:fixed;
   </div>
 </div>
 
-<!-- CTX MENU -->
 <div id="ctxov" onclick="closeCtx()"></div>
 <div id="ctx"></div>
 
-<!-- IMAGE VIEWER -->
 <div id="iv">
   <img id="iv-img" src="" alt="">
   <button class="iv-close" onclick="closeIv()">✕</button>
@@ -630,13 +627,10 @@ html,body{height:100%;width:100%;overflow:hidden;position:fixed;
   </div>
 </div>
 
-<!-- UPLOAD -->
 <div id="upl"><div class="usp"></div><div class="utx" id="utx">Enviando...</div></div>
 
-<!-- TOAST -->
 <div id="tst"></div>
 
-<!-- PRODUCT DETAIL -->
 <div id="prod-detail">
   <button class="pd-close" onclick="closeProd()">←</button>
   <div class="pd-img" id="pd-img"></div>
@@ -658,7 +652,6 @@ html,body{height:100%;width:100%;overflow:hidden;position:fixed;
   </div>
 </div>
 
-<!-- ADD PRODUCT MODAL -->
 <div id="modal">
   <div class="modal-box">
     <div class="modal-title">➕ Novo Anúncio</div>
@@ -703,11 +696,6 @@ html,body{height:100%;width:100%;overflow:hidden;position:fixed;
 <input type="file" id="pi" accept="image/*" onchange="handleProdImg(this)">
 
 <script>
-// ═══ SUPABASE ═══
-const SB_URL = 'https://uqdwtzlkqaosnweyoyit.supabase.co';
-const SB_KEY = 'sb_publishable_uafBQD1aJ3w8_eq4meOsNQ_wzk8TwhA';
-const sb = supabase.createClient(SB_URL, SB_KEY);
-
 // ═══ MEMBROS ═══ (edite aqui)
 const MEMBROS = [
   {nome:'Michel',   pin:'1234', av:'👨', cor:'#25d366', foto:'https://github.com/MichelDetilli.png'},
@@ -807,11 +795,9 @@ function doLogin(){
 
 // ═══ OPEN APP ═══
 function openApp(){
-  // Hide login, show app
   document.getElementById('LOGIN').style.display='none';
   document.getElementById('APP').style.display='flex';
-
-  // Set user avatar in topbar
+  
   const av=document.getElementById('tav');
   if(user.foto){ av.innerHTML=`<img src="${user.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` }
   else{ av.textContent=user.av; av.style.background=user.cor+'33'; }
@@ -908,7 +894,6 @@ function subMsgs(){
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'messages'},({new:m})=>{
       if(m.chat_room!==chat) return;
       if(m.deleted){ document.getElementById('msg-'+m.id)?.remove(); return; }
-      // update reactions
       const el=document.getElementById('msg-'+m.id);
       if(el){ const rc=el.querySelector('.reacts'); if(rc) buildReacts(rc,m); }
     })
@@ -921,7 +906,6 @@ function renderMsg(msg,isNew){
   const ti=document.getElementById('tpi');
   const mine=msg.author===user?.nome;
 
-  // date separator
   const md=new Date(msg.created_at).toLocaleDateString('pt-BR');
   if(md!==lastDate){
     lastDate=md;
@@ -950,7 +934,6 @@ function renderMsg(msg,isNew){
   const tstr=`${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}`;
   const tick=mine?'<span class="btick">✓✓</span>':'';
 
-  // reply preview
   if(msg.reply_preview){
     const rp=document.createElement('div');
     rp.className='rbub';
@@ -988,13 +971,12 @@ function renderMsg(msg,isNew){
   }
 
   g.appendChild(bub);
-  // reactions
+
   const reacts=document.createElement('div');
   reacts.className='reacts';
   buildReacts(reacts,msg);
   g.appendChild(reacts);
 
-  // long press
   let lpt;
   g.addEventListener('touchstart',()=>{lpt=setTimeout(()=>showCtx(g,msg),450);},{passive:true});
   g.addEventListener('touchend',()=>clearTimeout(lpt));
@@ -1304,47 +1286,5 @@ document.addEventListener('touchstart',()=>{ if(Actx.state==='suspended') Actx.r
 window.addEventListener('beforeunload',()=>{ if(user) sb.from('presence').update({online:false}).eq('nome',user.nome); });
 document.getElementById('msgs')?.addEventListener('click',closeMtray);
 </script>
-
-<!-- SQL para rodar no Supabase SQL Editor -->
-<!--
-create table if not exists messages (
-  id uuid default gen_random_uuid() primary key,
-  created_at timestamptz default now(),
-  chat_room text not null default 'Geral',
-  author text not null,
-  avatar text, color text,
-  type text default 'text',
-  content text, media_url text, duration text,
-  reply_to uuid, reply_preview text, reply_author text,
-  reactions jsonb default '{}',
-  deleted boolean default false
-);
-create table if not exists presence (
-  id uuid default gen_random_uuid() primary key,
-  nome text unique not null,
-  avatar text, color text,
-  online boolean default true,
-  last_seen timestamptz default now()
-);
-create table if not exists products (
-  id uuid default gen_random_uuid() primary key,
-  created_at timestamptz default now(),
-  name text not null, price text not null,
-  description text, category text default 'outros',
-  seller text not null, img_url text,
-  active boolean default true
-);
-alter table messages enable row level security;
-alter table presence  enable row level security;
-alter table products  enable row level security;
-create policy "pub_msg" on messages for all using (true) with check (true);
-create policy "pub_pres" on presence for all using (true) with check (true);
-create policy "pub_prod" on products for all using (true) with check (true);
-alter publication supabase_realtime add table messages;
-alter publication supabase_realtime add table presence;
-insert into storage.buckets (id,name,public) values ('chat-media','chat-media',true) on conflict do nothing;
-create policy "pub_upload" on storage.objects for insert with check (bucket_id='chat-media');
-create policy "pub_read"   on storage.objects for select using (bucket_id='chat-media');
--->
 </body>
 </html>
