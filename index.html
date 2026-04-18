@@ -120,3 +120,163 @@ html, body {
 </script>
 </body>
 </html>
+// ═══════════════ CONFIGURAÇÕES DE CONEXÃO ═══════════════
+const SB_URL = 'https://uqdwtzlkqaosnweyoyit.supabase.co';
+const SB_KEY = 'sb_publishable_uafBQD1aJ3w8_eq4meOsNQ_wzk8TwhA';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+const fbConfig = {
+  apiKey: "AIzaSyAWL1XRR8JK-J5Qk5DSIKmBl4ZYMZw1R4I",
+  projectId: "vibe-app-bbba2",
+  databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/"
+};
+firebase.initializeApp(fbConfig);
+const rtdb = firebase.database();
+
+// Variáveis de Estado
+let meuNome = localStorage.getItem('oio_user') || 'Membro';
+const KeyHelper = libsignal.KeyHelper;
+
+// ═══════════════ PILAR 1: CRIPTOGRAFIA E2E ═══════════════
+async function initCrypto() {
+  if (!localStorage.getItem('oio_idkey')) {
+    const identity = await KeyHelper.generateIdentityKeyPair();
+    const regId = await KeyHelper.generateRegistrationId();
+    localStorage.setItem('oio_idkey', JSON.stringify(identity));
+    localStorage.setItem('oio_regid', regId);
+  }
+}
+
+async function cifrar(texto) {
+  try {
+    const identity = JSON.parse(localStorage.getItem('oio_idkey'));
+    const enc = new TextEncoder().encode(texto);
+    const key = await crypto.subtle.importKey('jwk', identity.pubKey, {name:'AES-GCM'}, false, ['encrypt']);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const cifrado = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc);
+    return {
+      msg: btoa(String.fromCharCode(...new Uint8Array(cifrado))),
+      iv: btoa(String.fromCharCode(...iv))
+    };
+  } catch(e) { return { msg: texto, iv: null }; }
+}
+
+async function decifrar(cifrado, ivBase64) {
+  try {
+    if(!ivBase64) return cifrado;
+    const identity = JSON.parse(localStorage.getItem('oio_idkey'));
+    const key = await crypto.subtle.importKey('jwk', identity.pubKey, {name:'AES-GCM'}, false, ['decrypt']);
+    const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+    const data = Uint8Array.from(atob(cifrado), c => c.charCodeAt(0));
+    const dec = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
+    return new TextDecoder().decode(dec);
+  } catch(e) { return "🔒 Mensagem Cifrada"; }
+}
+
+// ═══════════════ PILAR 2: CHAT & REAL-TIME ═══════════════
+async function enviar() {
+  const input = document.getElementById('msgInput');
+  const texto = input.value.trim();
+  if (!texto) return;
+
+  const { msg, iv } = await cifrar(texto);
+  
+  const { error } = await sb.from('messages').insert([
+    { author: meuNome, content: msg, iv_data: iv, chat_room: 'Geral' }
+  ]);
+
+  if (!error) {
+    input.value = '';
+    vibrar(50);
+  }
+}
+
+// Escuta mensagens em tempo real
+sb.channel('public:messages')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+    renderMsg(payload.new);
+  })
+  .subscribe();
+
+async function renderMsg(m) {
+  const wrap = document.getElementById('msgs');
+  const textoFinal = await decifrar(m.content, m.iv_data);
+  const isMe = m.author === meuNome;
+
+  const div = document.createElement('div');
+  div.style.cssText = `
+    align-self: ${isMe ? 'flex-end' : 'flex-start'};
+    background: ${isMe ? 'var(--sent)' : 'var(--recv)'};
+    padding: 8px 12px;
+    border-radius: 12px;
+    max-width: 80%;
+    position: relative;
+    animation: slideIn 0.2s ease;
+  `;
+  
+  div.innerHTML = `
+    <div style="font-size:0.65rem; color:var(--g); font-weight:800; margin-bottom:2px;">${m.author}</div>
+    <div style="font-size:0.92rem;">${textoFinal}</div>
+    <div style="font-size:0.55rem; color:rgba(255,255,255,0.3); text-align:right; margin-top:4px;">
+      ${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+    </div>
+  `;
+  
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+// ═══════════════ PILAR 3: INTERFACE & VISUAIS ═══════════════
+function toggleTela(id) {
+  toast(`Mudando para: ${id.toUpperCase()}`);
+  document.querySelectorAll('.t-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id === 'chat' ? 'btnChat' : 'btnFeed').classList.add('active');
+}
+
+function toast(m) {
+  const t = document.getElementById('tst');
+  t.textContent = m;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2500);
+}
+
+function vibrar(ms) { if(navigator.vibrate) navigator.vibrate(ms); }
+
+function initCanvas() {
+  const c = document.getElementById('bg-canvas');
+  const ctx = c.getContext('2d');
+  let w, h, pts = [];
+
+  const resize = () => { w = c.width = window.innerWidth; h = c.height = window.innerHeight; };
+  window.addEventListener('resize', resize);
+  resize();
+
+  for(let i=0; i<6; i++) pts.push({
+    x: Math.random()*w, y: Math.random()*h,
+    r: Math.random()*60+40,
+    vx: Math.random()*0.4-0.2, vy: Math.random()*0.4-0.2
+  });
+
+  function anim() {
+    ctx.clearRect(0,0,w,h);
+    pts.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if(p.x<0 || p.x>w) p.vx*=-1;
+      if(p.y<0 || p.y>h) p.vy*=-1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(37, 211, 102, 0.04)';
+      ctx.fill();
+    });
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+// Boot Inicial
+window.onload = () => {
+  initCanvas();
+  initCrypto();
+  toast("OIO ONE Conectado");
+};
+        
