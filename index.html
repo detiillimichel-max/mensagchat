@@ -31,10 +31,8 @@ html, body {
   background:var(--bg); color:var(--txt); font-family:var(--ff);
 }
 
-/* BACKGROUND ANIMADO */
 #bg-canvas { position:fixed; inset:0; z-index:-1; opacity:0.4; }
 
-/* HEADER */
 #topo {
   background:rgba(17, 27, 33, 0.85); backdrop-filter:blur(15px);
   padding:calc(env(safe-area-inset-top,0) + 10px) 16px 10px;
@@ -48,15 +46,12 @@ html, body {
 .t-btn { font-size:1.3rem; color:var(--mu); cursor:pointer; transition:0.2s; }
 .t-btn.active { color:var(--g); }
 
-/* STORIES BAR */
 #mbar {
   height:95px; display:flex; align-items:center; gap:12px;
   padding:0 15px; overflow-x:auto; background:var(--s);
   border-bottom:1px solid var(--bdr); scrollbar-width:none;
 }
-#mbar::-webkit-scrollbar { display:none; }
 
-/* MESSAGES AREA */
 #msgs {
   flex:1; overflow-y:auto; padding:15px;
   display:flex; flex-direction:column; gap:10px;
@@ -64,7 +59,6 @@ html, body {
   background-blend-mode: overlay;
 }
 
-/* INPUT AREA */
 #controls {
   background:var(--s); padding:10px 15px calc(env(safe-area-inset-bottom,0) + 10px);
   display:flex; align-items:center; gap:12px; border-top:1px solid var(--bdr);
@@ -78,7 +72,6 @@ html, body {
   width:45px; height:45px; border-radius:50%; font-size:1.1rem;
 }
 
-/* TOAST */
 #tst {
   position:fixed; top:100px; left:50%; transform:translateX(-50%);
   background:var(--g2); color:#fff; padding:10px 20px;
@@ -116,10 +109,6 @@ html, body {
 </main>
 
 <script>
-// O Motor JavaScript (Supabase + Crypto + UI) segue no próximo balão...
-</script>
-</body>
-</html>
 // ═══════════════ CONFIGURAÇÕES DE CONEXÃO ═══════════════
 const SB_URL = 'https://uqdwtzlkqaosnweyoyit.supabase.co';
 const SB_KEY = 'sb_publishable_uafBQD1aJ3w8_eq4meOsNQ_wzk8TwhA';
@@ -131,13 +120,11 @@ const fbConfig = {
   databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/"
 };
 firebase.initializeApp(fbConfig);
-const rtdb = firebase.database();
 
-// Variáveis de Estado
 let meuNome = localStorage.getItem('oio_user') || 'Membro';
 const KeyHelper = libsignal.KeyHelper;
 
-// ═══════════════ PILAR 1: CRIPTOGRAFIA E2E ═══════════════
+// ═══════════════ CRIPTOGRAFIA E2E ═══════════════
 async function initCrypto() {
   if (!localStorage.getItem('oio_idkey')) {
     const identity = await KeyHelper.generateIdentityKeyPair();
@@ -173,110 +160,57 @@ async function decifrar(cifrado, ivBase64) {
   } catch(e) { return "🔒 Mensagem Cifrada"; }
 }
 
-// ═══════════════ PILAR 2: CHAT & REAL-TIME ═══════════════
+// ═══════════════ CHAT REAL-TIME ═══════════════
 async function enviar() {
   const input = document.getElementById('msgInput');
   const texto = input.value.trim();
   if (!texto) return;
-
   const { msg, iv } = await cifrar(texto);
-  
-  const { error } = await sb.from('messages').insert([
-    { author: meuNome, content: msg, iv_data: iv, chat_room: 'Geral' }
-  ]);
-
-  if (!error) {
-    input.value = '';
-    vibrar(50);
-  }
+  await sb.from('messages').insert([{ author: meuNome, content: msg, iv_data: iv, chat_room: 'Geral' }]);
+  input.value = '';
 }
 
-// Escuta mensagens em tempo real
-sb.channel('public:messages')
-  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-    renderMsg(payload.new);
-  })
-  .subscribe();
+sb.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+  renderMsg(payload.new);
+}).subscribe();
 
 async function renderMsg(m) {
   const wrap = document.getElementById('msgs');
   const textoFinal = await decifrar(m.content, m.iv_data);
   const isMe = m.author === meuNome;
-
   const div = document.createElement('div');
-  div.style.cssText = `
-    align-self: ${isMe ? 'flex-end' : 'flex-start'};
-    background: ${isMe ? 'var(--sent)' : 'var(--recv)'};
-    padding: 8px 12px;
-    border-radius: 12px;
-    max-width: 80%;
-    position: relative;
-    animation: slideIn 0.2s ease;
-  `;
-  
-  div.innerHTML = `
-    <div style="font-size:0.65rem; color:var(--g); font-weight:800; margin-bottom:2px;">${m.author}</div>
-    <div style="font-size:0.92rem;">${textoFinal}</div>
-    <div style="font-size:0.55rem; color:rgba(255,255,255,0.3); text-align:right; margin-top:4px;">
-      ${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-    </div>
-  `;
-  
+  div.style.cssText = `align-self:${isMe?'flex-end':'flex-start'}; background:${isMe?'var(--sent)':'var(--recv)'}; padding:8px 12px; border-radius:12px; max-width:80%; margin-bottom:5px;`;
+  div.innerHTML = `<div style="font-size:0.65rem; color:var(--g); font-weight:800;">${m.author}</div><div>${textoFinal}</div>`;
   wrap.appendChild(div);
   wrap.scrollTop = wrap.scrollHeight;
 }
 
-// ═══════════════ PILAR 3: INTERFACE & VISUAIS ═══════════════
-function toggleTela(id) {
-  toast(`Mudando para: ${id.toUpperCase()}`);
-  document.querySelectorAll('.t-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(id === 'chat' ? 'btnChat' : 'btnFeed').classList.add('active');
-}
-
-function toast(m) {
-  const t = document.getElementById('tst');
-  t.textContent = m;
-  t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 2500);
-}
-
-function vibrar(ms) { if(navigator.vibrate) navigator.vibrate(ms); }
+// ═══════════════ UI ═══════════════
+function toggleTela(id) { toast(`Mudando para: ${id.toUpperCase()}`); }
+function toast(m) { const t=document.getElementById('tst'); t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2500); }
 
 function initCanvas() {
   const c = document.getElementById('bg-canvas');
   const ctx = c.getContext('2d');
   let w, h, pts = [];
-
   const resize = () => { w = c.width = window.innerWidth; h = c.height = window.innerHeight; };
   window.addEventListener('resize', resize);
   resize();
-
-  for(let i=0; i<6; i++) pts.push({
-    x: Math.random()*w, y: Math.random()*h,
-    r: Math.random()*60+40,
-    vx: Math.random()*0.4-0.2, vy: Math.random()*0.4-0.2
-  });
-
+  for(let i=0; i<6; i++) pts.push({x:Math.random()*w, y:Math.random()*h, r:Math.random()*60+40, vx:Math.random()*0.4-0.2, vy:Math.random()*0.4-0.2});
   function anim() {
     ctx.clearRect(0,0,w,h);
     pts.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if(p.x<0 || p.x>w) p.vx*=-1;
-      if(p.y<0 || p.y>h) p.vy*=-1;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-      ctx.fillStyle = 'rgba(37, 211, 102, 0.04)';
-      ctx.fill();
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>w) p.vx*=-1; if(p.y<0||p.y>h) p.vy*=-1;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(37, 211, 102, 0.04)'; ctx.fill();
     });
     requestAnimationFrame(anim);
   }
   anim();
 }
 
-// Boot Inicial
-window.onload = () => {
-  initCanvas();
-  initCrypto();
-  toast("OIO ONE Conectado");
-};
-        
+window.onload = () => { initCanvas(); initCrypto(); toast("OIO ONE Conectado"); };
+</script>
+</body>
+</html>
